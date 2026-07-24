@@ -28,11 +28,11 @@ import {
 } from "firebase/database";
 
 // =====================================================
-// IMPOR MODUL TAMBAHAN
+// IMPOR MODUL TAMBAHAN (PATH DIPERBARUI)
 // =====================================================
-import { initThree, updateModelRelayStatus } from './js/three-setup.js';
-import { initVoiceCommand } from './js/voice-command.js';
-import { showNotification, initNotifications } from './js/notifications.js';
+import { initThree, updateModelRelayStatus } from './three-setup.js';
+import { initVoiceCommand } from './voice-command.js';
+import { showNotification, initNotifications } from './notifications.js';
 
 // =====================================================
 // INISIALISASI FIREBASE (TIDAK DIUBAH)
