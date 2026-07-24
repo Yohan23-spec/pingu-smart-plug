@@ -3,74 +3,217 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PINGU SMART PLUG</title>
+    <title>PINGU SMART PLUG - Dashboard</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
     
     <!-- CSS -->
     <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="css/animations.css" />
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <header class="header">
-            <div class="logo">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2"/>
-                    <path d="M16 20L24 28L32 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                </svg>
-                <h1>PINGU SMART PLUG</h1>
+    <!-- ========== BACKGROUND ========== -->
+    <div id="bg-canvas"></div>
+    <div class="background-gradient"></div>
+    <div class="floating-bubbles" id="bubbles"></div>
+    
+    <!-- ========== MAIN CONTAINER ========== -->
+    <div class="app-container">
+        
+        <!-- ===== HEADER ===== -->
+        <header class="header glass-card animate-fade-down">
+            <div class="header-left">
+                <div class="logo-wrapper">
+                    <svg class="logo-icon" width="48" height="48" viewBox="0 0 48 48" fill="none">
+                        <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2.5"/>
+                        <path d="M16 20L24 28L32 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        <circle cx="24" cy="24" r="4" fill="currentColor" opacity="0.3"/>
+                    </svg>
+                    <div class="logo-text">
+                        <h1>PINGU</h1>
+                        <span>SMART PLUG</span>
+                    </div>
+                </div>
+                <p class="header-subtitle">Smart IoT Controller</p>
             </div>
-            <div class="status-badge" id="connectionStatus">
-                <span class="dot"></span>
-                <span>Menghubungkan...</span>
+            <div class="header-right">
+                <div class="status-badge" id="connectionStatus">
+                    <span class="dot"></span>
+                    <span>Menghubungkan...</span>
+                </div>
             </div>
         </header>
 
-        <!-- Main Content -->
-        <main class="main">
-            <!-- Status Relay Card -->
-            <section class="card status-card">
-                <h2 class="card-title">Relay V1</h2>
-                <div class="status-display">
-                    <span class="status-label">Status:</span>
-                    <span class="status-value" id="relayStatus">---</span>
+        <!-- ===== MAIN CONTENT ===== -->
+        <main class="main-content">
+            
+            <!-- ===== 3D MODEL SECTION ===== -->
+            <section class="card-3d glass-card animate-fade-up" id="threeContainer">
+                <div class="card-3d-header">
+                    <span class="badge-3d">3D</span>
+                    <span class="card-3d-title">Pingu Interactive</span>
+                    <span class="card-3d-hint">🖱 Drag to rotate · Scroll to zoom</span>
                 </div>
-                <div class="status-indicator" id="statusIndicator"></div>
-            </section>
-
-            <!-- Control Buttons -->
-            <section class="card control-card">
-                <h2 class="card-title">Kontrol</h2>
-                <div class="button-group">
-                    <button class="btn btn-on" id="btnOn" data-action="on">
-                        ON
-                        <span class="btn-icon">⏻</span>
-                    </button>
-                    <button class="btn btn-off" id="btnOff" data-action="off">
-                        OFF
-                        <span class="btn-icon">⏻</span>
-                    </button>
+                <div id="three-canvas"></div>
+                <div class="model-status-overlay" id="modelStatusOverlay">
+                    <span class="model-status-text" id="modelStatusText">● Connected</span>
                 </div>
             </section>
 
-            <!-- Footer Info -->
-            <footer class="footer">
-                <p class="footer-text">Perangkat terhubung melalui Firebase Realtime Database</p>
-                <p class="footer-text small">© 2026 PINGU SMART HOME</p>
-            </footer>
+            <!-- ===== STATUS + VOICE GRID ===== -->
+            <div class="grid-2col">
+                
+                <!-- Device Status -->
+                <section class="card glass-card animate-fade-up" style="animation-delay: 0.1s;">
+                    <div class="card-header">
+                        <span class="card-icon">📡</span>
+                        <h2 class="card-title">Device Status</h2>
+                    </div>
+                    <div class="device-status-display">
+                        <div class="status-circle" id="statusCircle">
+                            <div class="status-pulse"></div>
+                        </div>
+                        <div class="status-detail">
+                            <span class="status-label-text" id="deviceStatusLabel">Online</span>
+                            <span class="status-time" id="statusTime">Realtime</span>
+                        </div>
+                    </div>
+                    <div class="device-metrics">
+                        <div class="metric-item">
+                            <span class="metric-label">Uptime</span>
+                            <span class="metric-value" id="uptimeDisplay">--:--:--</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Latency</span>
+                            <span class="metric-value" id="latencyDisplay">&lt; 100ms</span>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Voice Command -->
+                <section class="card glass-card animate-fade-up" style="animation-delay: 0.2s;">
+                    <div class="card-header">
+                        <span class="card-icon">🎤</span>
+                        <h2 class="card-title">Voice Command</h2>
+                    </div>
+                    <div class="voice-container">
+                        <button class="voice-btn" id="voiceBtn" aria-label="Voice Command">
+                            <div class="voice-btn-inner">
+                                <span class="voice-icon">🎤</span>
+                                <span class="voice-text" id="voiceStatusText">Klik untuk bicara</span>
+                            </div>
+                            <div class="voice-wave" id="voiceWave">
+                                <span></span><span></span><span></span>
+                                <span></span><span></span><span></span>
+                            </div>
+                        </button>
+                        <div class="voice-result" id="voiceResult">
+                            <span class="voice-result-text" id="voiceResultText">Siap menerima perintah</span>
+                        </div>
+                    </div>
+                    <div class="voice-commands-hint">
+                        <span>💡 "Nyalakan V1" · "Matikan V1"</span>
+                    </div>
+                </section>
+            </div>
+
+            <!-- ===== RELAY CONTROL ===== -->
+            <section class="card relay-card glass-card animate-fade-up" style="animation-delay: 0.3s;">
+                <div class="card-header">
+                    <span class="card-icon">⚡</span>
+                    <h2 class="card-title">Relay Controller</h2>
+                    <span class="relay-badge" id="relayBadge">V1</span>
+                </div>
+                <div class="relay-control">
+                    <div class="relay-status-display">
+                        <div class="relay-status-icon" id="relayStatusIcon">
+                            <span class="relay-icon-off">⏻</span>
+                            <span class="relay-icon-on">⚡</span>
+                        </div>
+                        <div class="relay-status-text">
+                            <span class="relay-label">Status</span>
+                            <span class="relay-value" id="relayStatus">---</span>
+                        </div>
+                    </div>
+                    <div class="relay-toggle-container">
+                        <div class="toggle-wrapper">
+                            <span class="toggle-label off-label">OFF</span>
+                            <button class="toggle-switch" id="relayToggle" role="switch" aria-checked="false">
+                                <span class="toggle-track">
+                                    <span class="toggle-thumb"></span>
+                                </span>
+                            </button>
+                            <span class="toggle-label on-label">ON</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="relay-progress" id="relayProgress">
+                    <div class="relay-progress-bar" id="relayProgressBar"></div>
+                </div>
+            </section>
+
+            <!-- ===== DEVICE INFORMATION ===== -->
+            <section class="card glass-card animate-fade-up" style="animation-delay: 0.4s;">
+                <div class="card-header">
+                    <span class="card-icon">📋</span>
+                    <h2 class="card-title">Device Information</h2>
+                    <span class="info-badge">Live</span>
+                </div>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">IP Address</span>
+                        <span class="info-value" id="deviceIP">192.168.1.100</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">MAC Address</span>
+                        <span class="info-value" id="deviceMAC">AA:BB:CC:DD:EE:FF</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Firmware</span>
+                        <span class="info-value" id="deviceFirmware">v2.4.1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">WiFi RSSI</span>
+                        <span class="info-value" id="deviceRSSI">-45 dBm</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Version</span>
+                        <span class="info-value" id="deviceVersion">1.0.0</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Uptime</span>
+                        <span class="info-value" id="deviceUptime">2d 14h 32m</span>
+                    </div>
+                </div>
+            </section>
+
         </main>
+
+        <!-- ===== FOOTER ===== -->
+        <footer class="footer glass-card animate-fade-up" style="animation-delay: 0.5s;">
+            <p class="footer-text">🔒 Terhubung melalui Firebase Realtime Database</p>
+            <p class="footer-text small">© 2026 PINGU SMART HOME · Made with ❄️</p>
+        </footer>
+
     </div>
 
-    <!-- Firebase SDK -->
+    <!-- ===== NOTIFICATION CONTAINER ===== -->
+    <div id="notificationContainer"></div>
+
+    <!-- ===== THREE.JS ===== -->
     <script type="importmap">
         {
             "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/",
                 "firebase/app": "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js",
                 "firebase/database": "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js"
             }
         }
     </script>
 
-    <!-- JavaScript -->
+    <!-- ===== JAVASCRIPT ===== -->
     <script type="module" src="script.js"></script>
 </body>
 </html>
