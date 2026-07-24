@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PINGU SMART PLUG</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <svg width="48" height="48" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2"/>
+                    <path d="M16 20L24 28L32 20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <h1>PINGU SMART PLUG</h1>
+            </div>
+            <div class="status-badge" id="connectionStatus">
+                <span class="dot"></span>
+                <span>Menghubungkan...</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main">
+            <!-- Status Relay Card -->
+            <section class="card status-card">
+                <h2 class="card-title">Relay V1</h2>
+                <div class="status-display">
+                    <span class="status-label">Status:</span>
+                    <span class="status-value" id="relayStatus">---</span>
+                </div>
+                <div class="status-indicator" id="statusIndicator"></div>
+            </section>
+
+            <!-- Control Buttons -->
+            <section class="card control-card">
+                <h2 class="card-title">Kontrol</h2>
+                <div class="button-group">
+                    <button class="btn btn-on" id="btnOn" data-action="on">
+                        ON
+                        <span class="btn-icon">⏻</span>
+                    </button>
+                    <button class="btn btn-off" id="btnOff" data-action="off">
+                        OFF
+                        <span class="btn-icon">⏻</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Footer Info -->
+            <footer class="footer">
+                <p class="footer-text">Perangkat terhubung melalui Firebase Realtime Database</p>
+                <p class="footer-text small">© 2026 PINGU SMART HOME</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js"
+            }
+        }
+    </script>
+
+    <!-- JavaScript -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>
