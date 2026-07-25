@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PINGU SMART HOME - AI Controller</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="animations.css" />
+    <link rel="stylesheet" href="voice-assistant.css" />
+</head>
+<body>
+    <!-- ========== BACKGROUND ========== -->
+    <div class="bg-gradient"></div>
+    <div class="bg-grid"></div>
+    <div class="floating-bubbles" id="bubbles"></div>
+    
+    <!-- ========== NAVIGATION ========== -->
+    <nav class="navbar glass-nav" id="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <svg class="nav-logo" width="36" height="36" viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="24" r="22" stroke="currentColor" stroke-width="2.5"/>
+                    <path d="M16 20L24 28L32 20" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <circle cx="24" cy="24" r="4" fill="currentColor" opacity="0.3"/>
+                </svg>
+                <span class="nav-brand-text">PINGU</span>
+                <span class="nav-brand-badge">AI</span>
+            </div>
+            
+            <div class="nav-links">
+                <button class="nav-link active" data-page="home">
+                    <span class="nav-link-icon">🏠</span>
+                    <span>Beranda</span>
+                </button>
+                <button class="nav-link" data-page="voice">
+                    <span class="nav-link-icon">🎤</span>
+                    <span>Suara</span>
+                </button>
+                <button class="nav-link" data-page="control">
+                    <span class="nav-link-icon">⚡</span>
+                    <span>Kontrol</span>
+                </button>
+            </div>
+            
+            <div class="nav-status">
+                <div class="nav-status-dot" id="navStatusDot"></div>
+                <span class="nav-status-text" id="navStatusText">Menghubungkan...</span>
+            </div>
+            
+            <button class="nav-menu-btn" id="navMenuBtn" aria-label="Toggle menu">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <main class="main-content" id="mainContent">
+        
+        <!-- ===== PAGE: HOME ===== -->
+        <section class="page active" id="page-home">
+            <!-- Hero Section -->
+            <div class="hero-section">
+                <div class="hero-content">
+                    <div class="hero-badge animate-fade-up">
+                        <span class="hero-badge-dot"></span>
+                        Smart IoT Controller
+                    </div>
+                    <h1 class="hero-title animate-fade-up" style="animation-delay: 0.1s;">
+                        Kontrol Rumah
+                        <span class="hero-title-gradient">Cerdas</span>
+                        <br />dengan AI
+                    </h1>
+                    <p class="hero-desc animate-fade-up" style="animation-delay: 0.2s;">
+                        PINGU adalah asisten AI untuk mengontrol perangkat rumah Anda.
+                        Gunakan suara atau sentuhan untuk mengatur relay dengan mudah.
+                    </p>
+                    <div class="hero-actions animate-fade-up" style="animation-delay: 0.3s;">
+                        <button class="btn-primary" id="heroCtaVoice">
+                            <span class="btn-icon">🎤</span>
+                            Mulai Suara
+                        </button>
+                        <button class="btn-secondary" id="heroCtaControl">
+                            <span class="btn-icon">⚡</span>
+                            Kontrol Manual
+                        </button>
+                    </div>
+                    <div class="hero-stats animate-fade-up" style="animation-delay: 0.4s;">
+                        <div class="hero-stat">
+                            <span class="hero-stat-value" id="heroStatStatus">Online</span>
+                            <span class="hero-stat-label">Status</span>
+                        </div>
+                        <div class="hero-stat-divider"></div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-value" id="heroStatRelay">---</span>
+                            <span class="hero-stat-label">Relay</span>
+                        </div>
+                        <div class="hero-stat-divider"></div>
+                        <div class="hero-stat">
+                            <span class="hero-stat-value" id="heroStatUptime">--:--:--</span>
+                            <span class="hero-stat-label">Uptime</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hero-visual animate-fade-up" style="animation-delay: 0.2s;">
+                    <div class="hero-3d-wrapper">
+                        <div class="hero-pingu-container">
+                            <img 
+                                src="pingu.png" 
+                                alt="Pingu Smart Home Mascot" 
+                                class="hero-pingu-image"
+                                id="pinguImage"
+                            />
+                            <div class="hero-pingu-glow" id="pinguGlow"></div>
+                            <div class="hero-3d-status" id="heroModelStatus">
+                                <span class="hero-3d-status-dot"></span>
+                                <span id="heroModelStatusText">Connected</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Features -->
+            <div class="features-section">
+                <div class="features-grid">
+                    <div class="feature-card glass-card animate-fade-up" style="animation-delay: 0.1s;">
+                        <div class="feature-icon">🎤</div>
+                        <h3 class="feature-title">Voice Control</h3>
+                        <p class="feature-desc">Kontrol relay dengan perintah suara. Ucapkan "Pingu" untuk mengaktifkan.</p>
+                    </div>
+                    <div class="feature-card glass-card animate-fade-up" style="animation-delay: 0.2s;">
+                        <div class="feature-icon">⚡</div>
+                        <h3 class="feature-title">Real-time Control</h3>
+                        <p class="feature-desc">Kontrol instan dengan toggle switch. Status diperbarui secara real-time.</p>
+                    </div>
+                    <div class="feature-card glass-card animate-fade-up" style="animation-delay: 0.3s;">
+                        <div class="feature-icon">📡</div>
+                        <h3 class="feature-title">IoT Connected</h3>
+                        <p class="feature-desc">Terhubung dengan ESP32 melalui Firebase. Pantau status perangkat Anda.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== PAGE: VOICE ===== -->
+        <section class="page" id="page-voice">
+            <div class="voice-page-container">
+                <div class="voice-header animate-fade-up">
+                    <h2 class="voice-page-title">Asisten Suara</h2>
+                    <p class="voice-page-desc">Bicara dengan Pingu untuk mengontrol perangkat Anda</p>
+                </div>
+                
+                <div class="voice-orb-wrapper animate-fade-up" style="animation-delay: 0.1s;">
+                    <!-- AI Orb -->
+                    <div class="voice-orb-container" id="voiceOrbContainer">
+                        <div class="voice-orb" id="voiceOrb">
+                            <div class="voice-orb-core" id="voiceOrbCore"></div>
+                            <div class="voice-orb-ring ring-1"></div>
+                            <div class="voice-orb-ring ring-2"></div>
+                            <div class="voice-orb-ring ring-3"></div>
+                            <div class="voice-orb-particles" id="orbParticles"></div>
+                        </div>
+                        <div class="voice-orb-status" id="voiceOrbStatus">
+                            <span class="voice-orb-status-text" id="voiceOrbStatusText">Nonaktif</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Orb Controls -->
+                    <div class="voice-orb-controls">
+                        <button class="voice-orb-btn" id="assistantToggleBtn">
+                            <span class="voice-orb-btn-icon">🎙️</span>
+                            <span class="voice-orb-btn-text" id="assistantBtnText">Aktifkan Asisten</span>
+                        </button>
+                        
+                        <div class="voice-orb-result glass-card" id="assistantResult">
+                            <span class="voice-orb-result-text" id="assistantResultText">Klik tombol untuk mengaktifkan asisten suara</span>
+                        </div>
+                        
+                        <div class="voice-orb-hint">
+                            <span>💡 Ucapkan <strong>"Pingu"</strong> lalu perintah <strong>"Tolong nyalakan"</strong> atau <strong>"Tolong matikan"</strong></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== PAGE: CONTROL ===== -->
+        <section class="page" id="page-control">
+            <div class="control-page-container">
+                <div class="control-header animate-fade-up">
+                    <h2 class="control-page-title">Kontrol Manual</h2>
+                    <p class="control-page-desc">Kelola perangkat Anda secara langsung</p>
+                </div>
+                
+                <!-- Relay Control Card -->
+                <div class="control-grid animate-fade-up" style="animation-delay: 0.1s;">
+                    <div class="control-card glass-card" id="relayCard">
+                        <div class="control-card-header">
+                            <div class="control-card-info">
+                                <span class="control-card-icon">⚡</span>
+                                <div>
+                                    <h3 class="control-card-title">Relay V1</h3>
+                                    <span class="control-card-subtitle">Perangkat Utama</span>
+                                </div>
+                            </div>
+                            <span class="control-card-badge" id="relayBadge">V1</span>
+                        </div>
+                        
+                        <div class="control-card-body">
+                            <div class="control-status-display">
+                                <div class="control-status-icon" id="relayStatusIcon">
+                                    <span class="control-icon-off">⏻</span>
+                                    <span class="control-icon-on">⚡</span>
+                                </div>
+                                <div class="control-status-text">
+                                    <span class="control-status-label">Status</span>
+                                    <span class="control-status-value" id="relayStatus">---</span>
+                                </div>
+                            </div>
+                            
+                            <div class="control-toggle-wrapper">
+                                <span class="control-toggle-label off">OFF</span>
+                                <button class="control-toggle" id="relayToggle" role="switch" aria-checked="false">
+                                    <span class="control-toggle-track">
+                                        <span class="control-toggle-thumb"></span>
+                                    </span>
+                                </button>
+                                <span class="control-toggle-label on">ON</span>
+                            </div>
+                        </div>
+                        
+                        <div class="control-card-footer">
+                            <div class="control-progress" id="relayProgress">
+                                <div class="control-progress-bar" id="relayProgressBar"></div>
+                            </div>
+                            <div class="control-metrics">
+                                <div class="control-metric">
+                                    <span class="control-metric-label">Latency</span>
+                                    <span class="control-metric-value" id="latencyDisplay">&lt; 100ms</span>
+                                </div>
+                                <div class="control-metric">
+                                    <span class="control-metric-label">Uptime</span>
+                                    <span class="control-metric-value" id="uptimeDisplay">--:--:--</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Device Info Card -->
+                    <div class="control-card glass-card">
+                        <div class="control-card-header">
+                            <div class="control-card-info">
+                                <span class="control-card-icon">📋</span>
+                                <div>
+                                    <h3 class="control-card-title">Info Perangkat</h3>
+                                    <span class="control-card-subtitle">Spesifikasi &amp; Status</span>
+                                </div>
+                            </div>
+                            <span class="control-card-badge live">Live</span>
+                        </div>
+                        
+                        <div class="control-info-grid">
+                            <div class="control-info-item">
+                                <span class="control-info-label">IP Address</span>
+                                <span class="control-info-value" id="deviceIP">192.168.1.100</span>
+                            </div>
+                            <div class="control-info-item">
+                                <span class="control-info-label">MAC Address</span>
+                                <span class="control-info-value" id="deviceMAC">AA:BB:CC:DD:EE:FF</span>
+                            </div>
+                            <div class="control-info-item">
+                                <span class="control-info-label">Firmware</span>
+                                <span class="control-info-value" id="deviceFirmware">v2.4.1</span>
+                            </div>
+                            <div class="control-info-item">
+                                <span class="control-info-label">WiFi RSSI</span>
+                                <span class="control-info-value" id="deviceRSSI">-45 dBm</span>
+                            </div>
+                            <div class="control-info-item">
+                                <span class="control-info-label">Version</span>
+                                <span class="control-info-value" id="deviceVersion">1.0.0</span>
+                            </div>
+                            <div class="control-info-item">
+                                <span class="control-info-label">Uptime</span>
+                                <span class="control-info-value" id="deviceUptime">2d 14h 32m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========== FOOTER ========== -->
+    <footer class="footer glass-nav">
+        <div class="footer-container">
+            <p class="footer-text">🔒 Terhubung melalui Firebase Realtime Database</p>
+            <p class="footer-text small">© 2026 PINGU SMART HOME · Made with ❄️</p>
+        </div>
+    </footer>
+
+    <!-- ========== FIREBASE IMPORT ========== -->
+    <script type="importmap">
+        {
+            "imports": {
+                "firebase/app": "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js",
+                "firebase/database": "https://www.gstatic.com/firebasejs/10.12.4/firebase-database.js"
+            }
+        }
+    </script>
+
+    <!-- ===== JAVASCRIPT ===== -->
+    <script type="module" src="script.js"></script>
+</body>
+</html>

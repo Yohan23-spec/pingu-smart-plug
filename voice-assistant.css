@@ -1,0 +1,286 @@
+/* ============================================================
+   VOICE ASSISTANT STYLES
+   ============================================================ */
+
+/* ============================================================
+   ASSISTANT BADGE
+   ============================================================ */
+.assistant-badge {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--cyan-400);
+    background: rgba(6, 182, 212, 0.12);
+    padding: 2px 14px;
+    border-radius: 20px;
+    border: 1px solid rgba(6, 182, 212, 0.15);
+    margin-left: auto;
+}
+
+/* ============================================================
+   ASSISTANT CONTAINER
+   ============================================================ */
+.assistant-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 14px;
+    padding: 4px 0;
+}
+
+/* ============================================================
+   ASSISTANT STATUS BAR
+   ============================================================ */
+.assistant-status-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.assistant-status-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: var(--transition-base);
+    background: var(--gray-500);
+}
+
+.assistant-status-indicator.off {
+    background: var(--gray-500);
+}
+
+.assistant-status-indicator.listening-wakeword {
+    background: var(--ice-400);
+    animation: pulseIndicator 1.2s ease-in-out infinite;
+}
+
+.assistant-status-indicator.responding {
+    background: var(--warning);
+    animation: pulseIndicator 0.6s ease-in-out infinite;
+}
+
+.assistant-status-indicator.listening-command {
+    background: var(--success);
+    animation: pulseIndicator 0.8s ease-in-out infinite;
+}
+
+.assistant-status-indicator.processing {
+    background: var(--ice-400);
+    animation: pulseIndicator 0.3s ease-in-out infinite;
+}
+
+.assistant-status-indicator.playing {
+    background: var(--cyan-400);
+    animation: pulseIndicator 0.5s ease-in-out infinite;
+}
+
+.assistant-status-indicator.timeout {
+    background: var(--warning);
+}
+
+.assistant-status-indicator.error {
+    background: var(--danger);
+}
+
+@keyframes pulseIndicator {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+.assistant-status-text {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--gray-300);
+    transition: var(--transition-base);
+}
+
+/* ============================================================
+   ASSISTANT TOGGLE BUTTON
+   ============================================================ */
+.assistant-toggle-btn {
+    width: 100%;
+    padding: 14px 20px;
+    border: none;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: var(--transition-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-family: var(--font-family);
+    position: relative;
+    overflow: hidden;
+}
+
+.assistant-toggle-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(255, 255, 255, 0.12);
+}
+
+.assistant-toggle-btn:active {
+    transform: scale(0.97);
+}
+
+.assistant-toggle-btn.active {
+    border-color: var(--danger);
+    background: rgba(239, 68, 68, 0.08);
+    box-shadow: 0 0 40px rgba(239, 68, 68, 0.05);
+}
+
+.assistant-toggle-btn.active:hover {
+    background: rgba(239, 68, 68, 0.12);
+}
+
+.assistant-btn-icon {
+    font-size: 22px;
+    line-height: 1;
+    transition: var(--transition-base);
+}
+
+.assistant-toggle-btn.active .assistant-btn-icon {
+    animation: voicePulse 1.5s ease-in-out infinite;
+}
+
+@keyframes voicePulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+}
+
+.assistant-btn-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-300);
+    transition: var(--transition-base);
+}
+
+.assistant-toggle-btn.active .assistant-btn-text {
+    color: var(--danger);
+}
+
+/* ============================================================
+   ASSISTANT RESULT
+   ============================================================ */
+.assistant-result {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: var(--radius-sm);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: var(--transition-base);
+}
+
+.assistant-result-text {
+    font-size: 14px;
+    color: var(--gray-400);
+    transition: var(--transition-base);
+}
+
+.assistant-result-text.interim {
+    color: var(--gray-300);
+    font-style: italic;
+}
+
+.assistant-result-text.detected {
+    color: var(--warning);
+    font-weight: 600;
+}
+
+.assistant-result-text.error {
+    color: var(--danger);
+}
+
+/* ============================================================
+   ASSISTANT WAVE ANIMATION
+   ============================================================ */
+.assistant-wave {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    height: 36px;
+    width: 100%;
+}
+
+.assistant-toggle-btn.active .assistant-wave {
+    display: flex;
+}
+
+.assistant-wave span {
+    display: block;
+    width: 4px;
+    background: var(--ice-400);
+    border-radius: 4px;
+    animation: waveAnim 0.8s ease-in-out infinite;
+    transition: var(--transition-base);
+}
+
+.assistant-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+.assistant-wave span:nth-child(2) { height: 16px; animation-delay: 0.1s; }
+.assistant-wave span:nth-child(3) { height: 24px; animation-delay: 0.2s; }
+.assistant-wave span:nth-child(4) { height: 28px; animation-delay: 0.3s; }
+.assistant-wave span:nth-child(5) { height: 24px; animation-delay: 0.4s; }
+.assistant-wave span:nth-child(6) { height: 16px; animation-delay: 0.5s; }
+.assistant-wave span:nth-child(7) { height: 8px; animation-delay: 0.6s; }
+.assistant-wave span:nth-child(8) { height: 16px; animation-delay: 0.7s; }
+.assistant-wave span:nth-child(9) { height: 24px; animation-delay: 0.8s; }
+
+@keyframes waveAnim {
+    0%, 100% { height: 8px; opacity: 0.4; }
+    50% { height: 28px; opacity: 1; }
+}
+
+/* ============================================================
+   ASSISTANT COMMANDS HINT
+   ============================================================ */
+.assistant-commands-hint {
+    font-size: 12px;
+    color: var(--gray-500);
+    text-align: center;
+    padding-top: 4px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 768px) {
+    .assistant-toggle-btn {
+        padding: 12px 16px;
+    }
+    
+    .assistant-btn-text {
+        font-size: 13px;
+    }
+    
+    .assistant-status-text {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .assistant-toggle-btn {
+        padding: 10px 14px;
+    }
+    
+    .assistant-btn-text {
+        font-size: 12px;
+    }
+    
+    .assistant-btn-icon {
+        font-size: 18px;
+    }
+}
