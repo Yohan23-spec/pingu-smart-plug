@@ -1,5 +1,5 @@
 // ============================================================
-// VOICE ASSISTANT - Wake Word System (Disesuaikan dengan UI baru)
+// VOICE ASSISTANT - Wake Word System (Optimasi untuk Android)
 // ============================================================
 
 import { playVoice, queueVoice, isVoicePlaying, stopVoice, preloadAudios } from './voice-player.js';
@@ -19,7 +19,7 @@ const STATE = {
 };
 
 // ============================================================
-// KONFIGURASI
+// KONFIGURASI (DIOPTIMASI UNTUK ANDROID)
 // ============================================================
 const CONFIG = {
     wakeWordAliases: [
@@ -34,10 +34,16 @@ const CONFIG = {
         'woe',
         'hai',
     ],
-    commandTimeout: 5000,
+    // DITINGKATKAN DARI 5 DETIK MENJADI 8 DETIK UNTUK MOBILE
+    commandTimeout: 8000,
     silenceThreshold: 2000,
     language: 'id-ID',
     continuous: true,
+    // KONFIGURASI BARU UNTUK ANDROID
+    transcriptBufferDelay: 800, // Jeda sebelum memproses transcript (ms)
+    audioCompleteDelay: 400, // Jeda setelah audio selesai (ms)
+    restartRecognitionDelay: 300, // Jeda sebelum restart recognition (ms)
+    minTranscriptLength: 2, // Panjang minimal transcript untuk diproses
 };
 
 // ============================================================
@@ -52,8 +58,110 @@ let onCommandCallback = null;
 let statusCallback = null;
 let isAssistantActive = false;
 let isWaitingForAudioComplete = false;
+let isProcessingTranscript = false;
 
-// DOM Elements (Disesuaikan dengan UI baru)
+// ============================================================
+// TRANSCRIPT BUFFER (SOLUSI UNTUK ANDROID)
+// ============================================================
+class TranscriptBuffer {
+    constructor() {
+        this.buffer = '';
+        this.timerId = null;
+        this.isProcessing = false;
+        this.lastTranscript = '';
+        this.transcriptCount = 0;
+        this.delay = CONFIG.transcriptBufferDelay;
+    }
+
+    /**
+     * Menambahkan transcript ke buffer
+     * Fitur ini mencegah Android memproses hasil speech yang terpotong
+     * 
+     * Alasan teknis:
+     * - Android Chrome sering mengirim hasil final secara bertahap
+     * - Contoh: "tolong" → "tolong nyalakan" → "tolong nyalakan lampu"
+     * - Dengan buffer, kita menunggu hingga user benar-benar selesai bicara
+     */
+    addTranscript(transcript) {
+        // Normalisasi transcript
+        const normalized = transcript.toLowerCase().trim();
+        if (!normalized) return;
+
+        // Jika transcript sama dengan yang terakhir, abaikan (duplikat)
+        if (normalized === this.lastTranscript) {
+            return;
+        }
+
+        this.lastTranscript = normalized;
+        this.transcriptCount++;
+
+        // Update buffer
+        this.buffer = normalized;
+        
+        // Reset timer setiap kali ada transcript baru
+        this.resetTimer();
+        
+        console.log(`📝 Buffer updated: "${this.buffer}" (${this.transcriptCount})`);
+    }
+
+    resetTimer() {
+        if (this.timerId) {
+            clearTimeout(this.timerId);
+            this.timerId = null;
+        }
+
+        // Tunggu hingga user berhenti bicara sebelum memproses
+        this.timerId = setTimeout(() => {
+            this.processBuffer();
+        }, this.delay);
+    }
+
+    processBuffer() {
+        if (this.isProcessing) return;
+        if (!this.buffer || this.buffer.length < CONFIG.minTranscriptLength) {
+            console.log(`📝 Buffer terlalu pendek, diabaikan: "${this.buffer}"`);
+            this.clear();
+            return;
+        }
+
+        this.isProcessing = true;
+        const transcript = this.buffer;
+        
+        console.log(`📝 Processing final transcript: "${transcript}"`);
+        
+        // Proses transcript yang sudah lengkap
+        handleFinalTranscript(transcript);
+        
+        this.clear();
+        this.isProcessing = false;
+    }
+
+    clear() {
+        this.buffer = '';
+        this.lastTranscript = '';
+        this.transcriptCount = 0;
+        if (this.timerId) {
+            clearTimeout(this.timerId);
+            this.timerId = null;
+        }
+        this.isProcessing = false;
+    }
+
+    // Untuk memproses buffer secara paksa (saat timeout)
+    flush() {
+        if (this.buffer && !this.isProcessing) {
+            console.log(`📝 Flushing buffer: "${this.buffer}"`);
+            this.processBuffer();
+        }
+    }
+}
+
+// Inisialisasi buffer
+let transcriptBuffer = null;
+
+// ============================================================
+// DOM ELEMENTS
+// ============================================================
 let assistantToggleBtn = null;
 let assistantStatusText = null;
 let assistantResultText = null;
@@ -78,7 +186,7 @@ export function initVoiceAssistant(options = {}) {
             return;
         }
         
-        // DOM Elements - Disesuaikan dengan ID baru
+        // DOM Elements
         assistantToggleBtn = document.getElementById('assistantToggleBtn');
         assistantStatusText = document.getElementById('voiceOrbStatusText');
         assistantResultText = document.getElementById('assistantResultText');
@@ -89,38 +197,49 @@ export function initVoiceAssistant(options = {}) {
             return;
         }
         
+        // Inisialisasi transcript buffer
+        transcriptBuffer = new TranscriptBuffer();
+        
+        // Setup recognition dengan konfigurasi optimal untuk Android
         recognition = new SpeechRecognition();
         recognition.lang = CONFIG.language;
         recognition.continuous = CONFIG.continuous;
+        // interimResults = true untuk mendapatkan feedback lebih cepat
+        // Tapi kita TIDAK langsung memproses hasil interim
         recognition.interimResults = true;
         recognition.maxAlternatives = 1;
+        
+        // ============================================================
+        // EVENT HANDLERS (DIOPTIMASI UNTUK ANDROID)
+        // ============================================================
         
         recognition.onstart = () => {
             isListening = true;
             updateUIState(currentState);
-            console.log('🎤 Voice recognition started');
+            console.log('🎤 Voice recognition started (Android optimized)');
         };
         
         recognition.onend = () => {
             isListening = false;
+            console.log('🛑 Voice recognition ended');
             
+            // Jika recognition berhenti dan masih ada buffer yang belum diproses
+            if (transcriptBuffer && transcriptBuffer.buffer) {
+                console.log('📝 Recognition ended, flushing buffer...');
+                transcriptBuffer.flush();
+            }
+            
+            // Restart recognition jika asisten masih aktif
             if (isAssistantActive && 
                 currentState !== STATE.OFF && 
                 currentState !== STATE.PLAYING_AUDIO &&
-                !isWaitingForAudioComplete) {
+                !isWaitingForAudioComplete &&
+                !isProcessingTranscript) {
+                
                 console.log('🔄 Restarting voice recognition...');
                 setTimeout(() => {
-                    if (isAssistantActive && 
-                        currentState !== STATE.OFF && 
-                        currentState !== STATE.PLAYING_AUDIO &&
-                        !isWaitingForAudioComplete) {
-                        try {
-                            recognition.start();
-                        } catch (e) {
-                            console.warn('⚠️ Gagal restart recognition:', e);
-                        }
-                    }
-                }, 100);
+                    safeStartRecognition();
+                }, CONFIG.restartRecognitionDelay);
             }
             
             updateUIState(currentState);
@@ -136,20 +255,28 @@ export function initVoiceAssistant(options = {}) {
                 }
                 deactivateAssistant();
             } else if (event.error === 'no-speech') {
-                // Silent
+                // Silent - Android sering mengirim ini
+                // Tidak perlu melakukan apa-apa
             } else if (event.error === 'aborted') {
-                // Ignore
-            } else {
+                // Ignore - ini adalah hasil dari stop yang disengaja
+            } else if (event.error === 'audio-capture') {
+                console.warn('⚠️ Audio capture error, mencoba restart...');
                 if (isAssistantActive && 
                     currentState !== STATE.OFF && 
                     currentState !== STATE.PLAYING_AUDIO &&
                     !isWaitingForAudioComplete) {
                     setTimeout(() => {
-                        try {
-                            recognition.start();
-                        } catch (e) {
-                            // Ignore
-                        }
+                        safeStartRecognition();
+                    }, 500);
+                }
+            } else {
+                // Untuk error lain, coba restart
+                if (isAssistantActive && 
+                    currentState !== STATE.OFF && 
+                    currentState !== STATE.PLAYING_AUDIO &&
+                    !isWaitingForAudioComplete) {
+                    setTimeout(() => {
+                        safeStartRecognition();
                     }, 500);
                 }
             }
@@ -160,14 +287,38 @@ export function initVoiceAssistant(options = {}) {
             const transcript = result[0].transcript.toLowerCase().trim();
             const isFinal = result.isFinal;
             
+            // Update UI dengan transcript (interim atau final)
             if (assistantResultText) {
                 assistantResultText.textContent = `"${transcript}"`;
                 assistantResultText.className = 'voice-orb-result-text';
+                if (!isFinal) {
+                    assistantResultText.className = 'voice-orb-result-text interim';
+                }
             }
             
+            // ============================================================
+            // KRITIKAL: HANYA PROSES HASIL FINAL DENGAN BUFFER
+            // ============================================================
+            // Alasan: Android sering mengirim hasil final secara bertahap
+            // Contoh: "tolong" (final) → "tolong nyalakan" (final)
+            // Dengan buffer, kita menunggu hingga user selesai bicara
+            // ============================================================
+            
             if (isFinal) {
-                handleTranscript(transcript);
+                // Tambahkan ke buffer, JANGAN langsung diproses
+                if (transcriptBuffer) {
+                    transcriptBuffer.addTranscript(transcript);
+                }
+                
+                // Log untuk debugging
+                console.log(`📝 Final transcript added to buffer: "${transcript}"`);
+                
+                // Reset command timeout karena user masih bicara
+                if (currentState === STATE.LISTENING_COMMAND) {
+                    resetCommandTimeout();
+                }
             } else {
+                // Interim result - hanya untuk UI feedback
                 if (assistantResultText) {
                     assistantResultText.textContent = `"${transcript}"`;
                     assistantResultText.className = 'voice-orb-result-text interim';
@@ -175,8 +326,8 @@ export function initVoiceAssistant(options = {}) {
             }
         };
         
+        // Setup toggle button
         assistantToggleBtn.addEventListener('click', toggleAssistant);
-        
         assistantToggleBtn.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
@@ -184,6 +335,7 @@ export function initVoiceAssistant(options = {}) {
             }
         });
         
+        // Preload audio
         try {
             preloadAudios();
         } catch (e) {
@@ -192,6 +344,65 @@ export function initVoiceAssistant(options = {}) {
         
         resolve();
     });
+}
+
+// ============================================================
+// SAFE START RECOGNITION (CEGAH RACE CONDITION)
+// ============================================================
+function safeStartRecognition() {
+    if (!recognition) return;
+    if (isListening) {
+        console.log('ℹ️ Recognition already listening');
+        return;
+    }
+    if (isWaitingForAudioComplete) {
+        console.log('ℹ️ Waiting for audio to complete');
+        return;
+    }
+    if (currentState === STATE.PLAYING_AUDIO) {
+        console.log('ℹ️ Currently playing audio');
+        return;
+    }
+    if (currentState === STATE.OFF) {
+        console.log('ℹ️ Assistant is off');
+        return;
+    }
+    if (isProcessingTranscript) {
+        console.log('ℹ️ Processing transcript, waiting...');
+        return;
+    }
+    
+    try {
+        recognition.start();
+        console.log('🎤 Recognition started safely');
+    } catch (e) {
+        console.warn('⚠️ Gagal memulai recognition:', e);
+        // Jika error, coba lagi setelah delay
+        if (isAssistantActive && currentState !== STATE.OFF) {
+            setTimeout(() => {
+                safeStartRecognition();
+            }, CONFIG.restartRecognitionDelay);
+        }
+    }
+}
+
+// ============================================================
+// SAFE STOP RECOGNITION (CEGAH DOUBLE CALL)
+// ============================================================
+function safeStopRecognition() {
+    if (!recognition) return;
+    if (!isListening) {
+        console.log('ℹ️ Recognition already stopped');
+        return;
+    }
+    
+    try {
+        recognition.stop();
+        console.log('🛑 Recognition stopped safely');
+    } catch (e) {
+        console.warn('⚠️ Gagal menghentikan recognition:', e);
+    }
+    isListening = false;
 }
 
 // ============================================================
@@ -214,27 +425,42 @@ function activateAssistant() {
     
     isAssistantActive = true;
     isWaitingForAudioComplete = false;
+    isProcessingTranscript = false;
     setState(STATE.PLAYING_AUDIO);
     
     console.log('🎵 Memutar audio: mode_panggil_aktif');
     
-    stopRecognition();
+    safeStopRecognition();
+    
+    // Inisialisasi ulang buffer
+    if (transcriptBuffer) {
+        transcriptBuffer.clear();
+    }
     
     playVoice('mode_panggil_aktif')
         .then(() => {
             console.log('✅ Audio mode_panggil_aktif selesai');
             isWaitingForAudioComplete = false;
             if (isAssistantActive) {
-                setState(STATE.LISTENING_WAKEWORD);
-                startRecognition();
+                // Jeda sebelum start recognition (penting untuk Android)
+                setTimeout(() => {
+                    if (isAssistantActive) {
+                        setState(STATE.LISTENING_WAKEWORD);
+                        safeStartRecognition();
+                    }
+                }, CONFIG.audioCompleteDelay);
             }
         })
         .catch(() => {
             console.warn('⚠️ Gagal memutar mode_panggil_aktif');
             isWaitingForAudioComplete = false;
             if (isAssistantActive) {
-                setState(STATE.LISTENING_WAKEWORD);
-                startRecognition();
+                setTimeout(() => {
+                    if (isAssistantActive) {
+                        setState(STATE.LISTENING_WAKEWORD);
+                        safeStartRecognition();
+                    }
+                }, CONFIG.audioCompleteDelay);
             }
         });
     
@@ -249,48 +475,23 @@ function deactivateAssistant() {
     isAssistantActive = false;
     wakeWordDetected = false;
     isWaitingForAudioComplete = false;
+    isProcessingTranscript = false;
     
     if (commandTimeoutId) {
         clearTimeout(commandTimeoutId);
         commandTimeoutId = null;
     }
     
-    stopRecognition();
+    if (transcriptBuffer) {
+        transcriptBuffer.clear();
+    }
+    
+    safeStopRecognition();
     stopVoice();
     
     setState(STATE.OFF);
     updateUIState(STATE.OFF);
     console.log('🎤 Voice Assistant dinonaktifkan');
-}
-
-// ============================================================
-// START / STOP RECOGNITION
-// ============================================================
-function startRecognition() {
-    if (!recognition) return;
-    if (isListening) return;
-    if (isWaitingForAudioComplete) return;
-    if (currentState === STATE.PLAYING_AUDIO) return;
-    
-    try {
-        recognition.start();
-        console.log('🎤 Recognition started');
-    } catch (e) {
-        console.warn('⚠️ Gagal memulai recognition:', e);
-    }
-}
-
-function stopRecognition() {
-    if (!recognition) return;
-    if (isListening) {
-        try {
-            recognition.stop();
-            console.log('🛑 Recognition stopped');
-        } catch (e) {
-            console.warn('⚠️ Gagal menghentikan recognition:', e);
-        }
-    }
-    isListening = false;
 }
 
 // ============================================================
@@ -306,10 +507,10 @@ function setState(newState) {
 }
 
 // ============================================================
-// HANDLE TRANSCRIPT
+// HANDLE FINAL TRANSCRIPT (DARI BUFFER)
 // ============================================================
-function handleTranscript(transcript) {
-    console.log(`📝 Transcript: "${transcript}"`);
+function handleFinalTranscript(transcript) {
+    console.log(`📝 Processing final transcript: "${transcript}"`);
     
     switch (currentState) {
         case STATE.LISTENING_WAKEWORD:
@@ -319,6 +520,7 @@ function handleTranscript(transcript) {
             handleCommand(transcript);
             break;
         default:
+            console.log(`ℹ️ Transcript ignored (state: ${currentState})`);
             break;
     }
 }
@@ -363,7 +565,8 @@ function handleWakeWord(transcript) {
         console.log(`🔔 Wake word detected: "${wakeWordResult.alias}"`);
         wakeWordDetected = true;
         
-        stopRecognition();
+        // Stop recognition saat wake word terdeteksi
+        safeStopRecognition();
         setState(STATE.PLAYING_AUDIO);
         
         if (assistantResultText) {
@@ -379,18 +582,34 @@ function handleWakeWord(transcript) {
                 console.log('✅ Audio "iya" selesai');
                 isWaitingForAudioComplete = false;
                 if (isAssistantActive) {
-                    setState(STATE.LISTENING_COMMAND);
-                    startCommandTimeout();
-                    startRecognition();
+                    // Jeda setelah audio selesai (penting untuk Android)
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            setState(STATE.LISTENING_COMMAND);
+                            startCommandTimeout();
+                            // Reset buffer untuk command
+                            if (transcriptBuffer) {
+                                transcriptBuffer.clear();
+                            }
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             })
             .catch(() => {
                 console.warn('⚠️ Gagal memutar iya');
                 isWaitingForAudioComplete = false;
                 if (isAssistantActive) {
-                    setState(STATE.LISTENING_COMMAND);
-                    startCommandTimeout();
-                    startRecognition();
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            setState(STATE.LISTENING_COMMAND);
+                            startCommandTimeout();
+                            if (transcriptBuffer) {
+                                transcriptBuffer.clear();
+                            }
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             });
     }
@@ -400,6 +619,14 @@ function handleWakeWord(transcript) {
 // HANDLE COMMAND
 // ============================================================
 function handleCommand(transcript) {
+    if (isProcessingTranscript) {
+        console.log('⏳ Already processing, ignoring...');
+        return;
+    }
+    
+    isProcessingTranscript = true;
+    
+    // Clear timeout karena command sudah diterima
     if (commandTimeoutId) {
         clearTimeout(commandTimeoutId);
         commandTimeoutId = null;
@@ -407,12 +634,12 @@ function handleCommand(transcript) {
     
     const lower = transcript.toLowerCase().trim();
     
-    stopRecognition();
+    safeStopRecognition();
     setState(STATE.PROCESSING_COMMAND);
     
     let commandFound = false;
     
-    // OFF
+    // DETEKSI PERINTAH MATIKAN
     if (lower.includes('matikan') || 
         lower.includes('nonaktifkan') || 
         lower.includes('off') || 
@@ -434,22 +661,38 @@ function handleCommand(transcript) {
         playVoice('pingu_dimatikan')
             .then(() => {
                 isWaitingForAudioComplete = false;
+                isProcessingTranscript = false;
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             })
             .catch(() => {
                 isWaitingForAudioComplete = false;
+                isProcessingTranscript = false;
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             });
     }
-    // ON
+    // DETEKSI PERINTAH NYALAKAN
     else if (lower.includes('nyalakan') || 
              lower.includes('hidupkan') || 
              lower.includes('aktifkan') || 
@@ -471,22 +714,39 @@ function handleCommand(transcript) {
         playVoice('pingu_dinyalakan')
             .then(() => {
                 isWaitingForAudioComplete = false;
+                isProcessingTranscript = false;
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             })
             .catch(() => {
                 isWaitingForAudioComplete = false;
+                isProcessingTranscript = false;
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             });
     }
     
+    // PERINTAH TIDAK DIKENALI
     if (!commandFound) {
         console.log(`❌ Perintah tidak dikenali: "${lower}"`);
         setState(STATE.PLAYING_AUDIO);
@@ -501,18 +761,34 @@ function handleCommand(transcript) {
         playVoice('tidak_dimengerti')
             .then(() => {
                 isWaitingForAudioComplete = false;
+                isProcessingTranscript = false;
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             })
             .catch(() => {
                 isWaitingForAudioComplete = false;
+                isProcessingTranscript = false;
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             });
     }
@@ -524,13 +800,22 @@ function handleCommand(transcript) {
 function startCommandTimeout() {
     if (commandTimeoutId) {
         clearTimeout(commandTimeoutId);
+        commandTimeoutId = null;
     }
     
     commandTimeoutId = setTimeout(() => {
         console.log('⏰ Command timeout');
         commandTimeoutId = null;
         
-        stopRecognition();
+        // Flush buffer jika ada transcript yang belum diproses
+        if (transcriptBuffer && transcriptBuffer.buffer) {
+            console.log('📝 Timeout: flushing buffer...');
+            transcriptBuffer.flush();
+            // Jika buffer diproses, timeout akan di-handle di proses tersebut
+            return;
+        }
+        
+        safeStopRecognition();
         setState(STATE.PLAYING_AUDIO);
         isWaitingForAudioComplete = true;
         
@@ -546,7 +831,14 @@ function startCommandTimeout() {
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             })
             .catch(() => {
@@ -554,10 +846,26 @@ function startCommandTimeout() {
                 if (isAssistantActive) {
                     setState(STATE.LISTENING_WAKEWORD);
                     wakeWordDetected = false;
-                    startRecognition();
+                    if (transcriptBuffer) {
+                        transcriptBuffer.clear();
+                    }
+                    setTimeout(() => {
+                        if (isAssistantActive) {
+                            safeStartRecognition();
+                        }
+                    }, CONFIG.audioCompleteDelay);
                 }
             });
     }, CONFIG.commandTimeout);
+}
+
+function resetCommandTimeout() {
+    if (commandTimeoutId) {
+        clearTimeout(commandTimeoutId);
+        commandTimeoutId = null;
+    }
+    // Restart timeout
+    startCommandTimeout();
 }
 
 // ============================================================
@@ -623,9 +931,15 @@ export function disposeVoiceAssistant() {
         commandTimeoutId = null;
     }
     
+    if (transcriptBuffer) {
+        transcriptBuffer.clear();
+        transcriptBuffer = null;
+    }
+    
     isAssistantActive = false;
     isListening = false;
     isWaitingForAudioComplete = false;
+    isProcessingTranscript = false;
     currentState = STATE.OFF;
     stopVoice();
 }
