@@ -1,8 +1,10 @@
 /* ============================================================
-   ANIMATIONS
+   ANIMATIONS - PINGU SMART HOME
    ============================================================ */
 
-/* Fade In */
+/* ============================================================
+   FADE IN
+   ============================================================ */
 @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
@@ -12,23 +14,9 @@
     animation: fadeIn 0.6s ease forwards;
 }
 
-/* Fade Down */
-@keyframes fadeDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.animate-fade-down {
-    animation: fadeDown 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-/* Fade Up */
+/* ============================================================
+   FADE UP
+   ============================================================ */
 @keyframes fadeUp {
     from {
         opacity: 0;
@@ -45,7 +33,27 @@
     animation: fadeUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* Scale In */
+/* ============================================================
+   FADE DOWN
+   ============================================================ */
+@keyframes fadeDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-down {
+    animation: fadeDown 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ============================================================
+   SCALE IN
+   ============================================================ */
 @keyframes scaleIn {
     from {
         opacity: 0;
@@ -61,7 +69,9 @@
     animation: scaleIn 0.4s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
-/* Glow Pulse */
+/* ============================================================
+   GLOW PULSE
+   ============================================================ */
 @keyframes glowPulse {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
@@ -71,7 +81,9 @@
     animation: glowPulse 2s ease-in-out infinite;
 }
 
-/* Floating */
+/* ============================================================
+   FLOATING
+   ============================================================ */
 @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
@@ -81,7 +93,9 @@
     animation: float 3s ease-in-out infinite;
 }
 
-/* Spin */
+/* ============================================================
+   SPIN
+   ============================================================ */
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
@@ -90,4 +104,49 @@
     animation: spin 1s linear infinite;
 }
 
-/* Notification Slide - defined in main CSS */
+/* ============================================================
+   SLIDE IN
+   ============================================================ */
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-slide-left {
+    animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes slideInRight {
+    from {
+        opacity: 0;
+        transform: translateX(40px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.animate-slide-right {
+    animation: slideInRight 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+/* ============================================================
+   DELAYS
+   ============================================================ */
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+.delay-5 { animation-delay: 0.25s; }
+.delay-6 { animation-delay: 0.3s; }
+.delay-7 { animation-delay: 0.35s; }
+.delay-8 { animation-delay: 0.4s; }
+.delay-9 { animation-delay: 0.45s; }
+.delay-10 { animation-delay: 0.5s; }
